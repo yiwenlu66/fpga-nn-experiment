@@ -20,9 +20,9 @@ num_classes = size(y, 2);
 Theta = rand(n + 1, num_classes) * 1e-8;
 
 % set hyperparameters
-lr = 1e-3;
-batch_size = 3000;      % be sure m is divisible by batch_size
-n_iter = 300;
+lr = 1e-4;
+batch_size = 100;      % be sure m is divisible by batch_size
+n_iter = 2000;
 
 % start iterations
 for i=1:n_iter
