@@ -1,0 +1,3 @@
+[submodule "v/fpu"]
+	path = v/fpu
+	url = git@github.com:dawsonjon/fpu.git
