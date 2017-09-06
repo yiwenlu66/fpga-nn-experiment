@@ -3,8 +3,8 @@
 module fpu_tb();
 
 reg clk, rst;
-reg [3:0][31:0] a, b;
-reg [1:0] i;
+reg [7:0][31:0] a, b;
+reg [2:0] i;
 reg [31:0] input_a, input_b;
 reg input_a_stb, input_b_stb, product_ack;
 
@@ -12,18 +12,20 @@ wire [31:0] sum, product;
 wire input_a_ack, input_b_ack, product_stb;
 
 reg input_a_acked, input_b_acked;
+reg delay_output;
 
 initial begin
     $dumpvars;
     clk = 0;
-    i = 2'd0;
-    a = {32'h3F800000, 32'h40000000, 32'hC0400000, 32'hC0800000};   // [1, 2, -3, -4]
-    b = {32'hC0800000, 32'h40400000, 32'h40000000, 32'hBF800000};   // [-4, 3, 2, -1]
+    i = 3'd0;
+    a = {32'h3F800000, 32'h40000000, 32'hC0400000, 32'hC0800000, 32'h40A00000, 32'h40C00000, 32'h40E00000, 32'h41000000};   // [1, 2, -3, -4, 5, 6, 7, 8]
+    b = {32'hC0800000, 32'h40400000, 32'h40000000, 32'hBF800000, 32'h40A00000, 32'h40C00000, 32'h40E00000, 32'h41000000};   // [-4, 3, 2, -1, 5, 6, 7, 8]
     input_a_stb = 0;
     input_b_stb = 0;
     product_ack = 0;
     input_a_acked = 0;
     input_b_acked = 0;
+    delay_output = 0;
     forever begin
         #5 clk = ~clk;
     end
@@ -32,6 +34,8 @@ end
 initial begin
     rst = 1;
     #10 rst = 0;
+    #1000 delay_output = 1;
+    #1000 delay_output = 0;
     #1000 $finish;
 end
 
@@ -79,7 +83,7 @@ always @(posedge clk) begin
         i <= i + 1;
     end
 
-    if (product_stb) begin
+    if (product_stb && !delay_output) begin
         product_ack <= 1'b1;
     end else begin
         product_ack <= 1'b0;
