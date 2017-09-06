@@ -6,9 +6,10 @@ def to_ieee754(x: float) -> str:
 
     # sign
     bits.append('0' if x > 0 else '1')
-    exp = 127 + floor(log(x, 2))
+    x = abs(x)
 
     # exponent
+    exp = 127 + floor(log(x, 2))
     exp_bin = bin(exp)[2:]
     exp_bin = '0' * (8 - len(exp_bin)) + exp_bin
     bits.extend(list(exp_bin))
