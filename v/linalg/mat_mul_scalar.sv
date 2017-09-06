@@ -141,7 +141,6 @@ generate
                 end
 
                 PUT_MAT: begin
-                    workers_output_z_ack <= 1'b0;
                     output_mat <= out_mat_aligned;
                     output_mat_stb <= 1'b1;
                     if (output_mat_stb && output_mat_ack) begin
