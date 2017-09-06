@@ -9,12 +9,38 @@ reg [1:0][2:0][31:0] input_mat;
 reg input_scalar_stb;
 reg input_mat_stb;
 reg output_mat_ack;
-wire [1:0][2:0][31:0] output_mat;
-wire input_scalar_ack;
-wire input_mat_ack;
-wire output_mat_stb;
+wire [1:0][2:0][31:0] output_mat_slow, output_mat_fast;
+wire input_scalar_ack_slow, input_scalar_ack_fast;
+wire input_mat_ack_slow, input_mat_ack_fast;
+wire output_mat_stb_slow, output_mat_stb_fast;
 
-mat_mul_scalar #(.M(2), .N(3), .N_MULTIPLIERS(4)) uut (.*);
+mat_mul_scalar #(.M(2), .N(3), .N_MULTIPLIERS(4)) uut_slow (
+    .clk(clk),
+    .rst(rst),
+    .input_scalar(input_scalar),
+    .input_mat(input_mat),
+    .input_scalar_stb(input_scalar_stb),
+    .input_mat_stb(input_mat_stb),
+    .output_mat_ack(output_mat_ack),
+    .output_mat(output_mat_slow),
+    .input_scalar_ack(input_scalar_ack_slow),
+    .input_mat_ack(input_mat_ack_slow),
+    .output_mat_stb(output_mat_stb_slow)
+);
+
+mat_mul_scalar #(.M(2), .N(3), .N_MULTIPLIERS(8)) uut_fast (
+    .clk(clk),
+    .rst(rst),
+    .input_scalar(input_scalar),
+    .input_mat(input_mat),
+    .input_scalar_stb(input_scalar_stb),
+    .input_mat_stb(input_mat_stb),
+    .output_mat_ack(output_mat_ack),
+    .output_mat(output_mat_fast),
+    .input_scalar_ack(input_scalar_ack_fast),
+    .input_mat_ack(input_mat_ack_fast),
+    .output_mat_stb(output_mat_stb_fast)
+);
 
 initial begin
     $dumpvars();
