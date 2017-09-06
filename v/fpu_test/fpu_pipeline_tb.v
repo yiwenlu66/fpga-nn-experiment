@@ -36,7 +36,7 @@ initial begin
     #10 rst = 0;
     #1000 delay_output = 1;
     #1000 delay_output = 0;
-    #1000 $finish;
+    #2000 $finish;
 end
 
 
@@ -57,36 +57,47 @@ multiplier mul(
 
 always @(posedge clk) begin
 
-    if (!input_a_acked && !input_a_ack) begin
-        input_a <= a[i];
-        input_a_stb <= 1'b1;
-    end
+    if (i < 3'd7) begin
 
-    if (!input_b_acked && !input_b_ack) begin
-        input_b <= b[i];
-        input_b_stb <= 1'b1;
-    end
+        if (!input_a_acked && !input_a_ack) begin
+            input_a <= a[i];
+            input_a_stb <= 1'b1;
+        end
 
-    if (input_a_ack) begin
-        input_a_acked <= 1'b1;
-        input_a_stb <= 1'b0;
-    end
+        if (!input_b_acked && !input_b_ack) begin
+            input_b <= b[i];
+            input_b_stb <= 1'b1;
+        end
 
-    if (input_b_ack) begin
-        input_b_acked <= 1'b1;
-        input_b_stb <= 1'b0;
-    end
+        if (input_a_ack) begin
+            input_a_acked <= 1'b1;
+            input_a_stb <= 1'b0;
+        end
 
-    if (input_a_acked && input_b_acked) begin
-        input_a_acked <= 1'b0;
-        input_b_acked <= 1'b0;
-        i <= i + 1;
-    end
+        if (input_b_ack) begin
+            input_b_acked <= 1'b1;
+            input_b_stb <= 1'b0;
+        end
 
-    if (product_stb && !delay_output) begin
-        product_ack <= 1'b1;
+        if (input_a_acked && input_b_acked) begin
+            input_a_acked <= 1'b0;
+            input_b_acked <= 1'b0;
+            i <= i + 1;
+        end
+
+        if (product_stb && !delay_output) begin
+            product_ack <= 1'b1;
+        end else begin
+            product_ack <= 1'b0;
+        end
+
     end else begin
-        product_ack <= 1'b0;
+        
+        // test FPU under continuous high stb
+        input_a_stb <= 1'b1;
+        input_b_stb <= 1'b1;
+        #100 input_b <= 32'b0;
+
     end
 
 end
