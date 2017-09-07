@@ -123,11 +123,33 @@ begin
         end
     end
 end 
+reg [9:0] cnt;
+reg [9:0] index;
+always@(posedge clk)
+begin 
+    if(rst)
+        cnt <= 0;
+        index <= 0;
+    else
+    begin
+        if(dataOutReady == 1)
+        begin
+            if(index<100)
+            begin
+                 if(sigmoid_h[index] == y[index])
+                     cnt <= cnt+1;
+             end
+
+        end
+    end
+end
 //trainging
 reg [783:0][99:0] xTrans;
 reg [99:0][9:0] negY;
 reg [99:0][9:0] h;
 reg [99:0][9:0] h_buffer;
+reg [99:0][9:0] sigmoid_h;
+reg [99:0][9:0] sigmoid_h_buffer;
 reg [99:0][9:0] h_minus_y;
 reg [99:0][9:0] h_minus_y_buffer;
 reg [783:0][99:0] xTransDivM;
@@ -142,7 +164,7 @@ reg [783:0][9:0] lrGrad;
 reg [783:0][9:0] lrGrad_buffer;
 
 
-reg [3:0] state; //0 wait, 1 calculate x' h, 2 get (h - y) ,3 get 1/m * x', 4 get (1/m) * x' * (h-y), 5 get lr*grad, 6 get new Theta
+reg [3:0] state; //0 wait, 1 calculate x' h, 2. get sigmoid_h 3 get (h - y) ,4 get 1/m * x', 5 get (1/m) * x' * (h-y), 6 get lr*grad, 7 get new Theta
 reg getH = 1;
 reg input_Theta_Stable;
 reg input_xTransDivM_stb;
@@ -154,6 +176,10 @@ reg input_lr_stb;
 reg input_lrGrad_stb;
 reg getLrGrad;
 reg getNewTheta;
+reg input_sigmoid_h_stb;
+reg getSigmoid;
+wire input_sigmoid_h_stb;
+wire output_sigmoid_h_stb;
 wire input_ThetaR_ack;
 wire input_lrGrad_ack;
 wire input_grad_ack;
@@ -204,6 +230,8 @@ begin
             getNewTheta <= 0;
             input_ThetaR_stb <= 0;
             input_lrGrad_stb <= 0;
+            input_sigmoid_h_stb <= 0;
+            getSigmoid <= 0;
         end
         else
             iterate <= 0;
@@ -216,49 +244,57 @@ begin
             getH <= 1;
             input_Theta_Stable <= 0;
             state <= 2;
-            input_h_stable <= 1;
+            input_sigmoid_h_stb <= 1;
         end
     end
     2:begin
+        if(input_sigmoid_h_ack && output_sigmoid_h_stb)
+        begin
+            sigmoid_h <= sigmoid_h_buffer;
+            input_h_stb <= 1;
+            state <= 3;
+        end
+    end
+    3:begin
         if(input_y_ack && input_h_ack && output_YMH_stable)
         begin
             h_minus_y <= h_minus_y_buffer;
             getYMH <= 1;
             input_h_stable <= 0;
-            state <= 3;
+            state <= 4;
         end
     end
-    3:begin
+    4:begin
         if(input_oneDiveM_ack && input_xTrans_ack && output_xTransDivM_stable)
         begin
             xTransDivM <= xTransDivM_buffer;
             getXtransDivM <= 1;
             input_xTrans_stb <= 0;
-            state <= 4;
+            state <= 5;
             input_xTransDivM_stb <= 1;
             input_HMY_stb <= 1;
         end
     end
-    4:begin
+    5:begin
         if(input_xTransDivM_ack && input_HMY_ack && output_Grad_stb)
         begin
             grad <= grad_buffer;
-            state <= 5;
+            state <= 6;
             input_grad_stb <= 1; 
         end
     end
-    5:begin
+    6:begin
         if(input_grad_ack && input_lr_ack && output_lrGrad_stb)
         begin
             lrGrad <= lrGrad_buffer;
             getLrGrad <= 1;
-            state <= 6;
+            state <= 7;
             input_lrGrad_stb <= 1;
             input_ThetaR_stb <= 1;
             getNewTheta <= 0;
         end 
     end
-    6:begin
+    7:begin
         if(input_lrGrad_ack && input_Theta_ack && output_newTheta_stb)
         begin
             if(iterate < 2001)
@@ -301,7 +337,7 @@ mat_sum #(.M(100),(10)) get_YMH(
     .clk(clk),
     .rst(rst),
     .input_a(negY),
-    .input_b(h),
+    .input_b(sigmoid_h),
     .input_a_stb(dataInReady),
     .input_b_stb(input_h_stable),
     .output_z_ack(getYMH),
@@ -362,4 +398,14 @@ mat_sum #(.M(784), .N(10)) getNewTheta(
     .input_b_ack(input_lrGrad_ack),
     .output_z(Theta_buffer),
     .output_z_stb(output_newTheta_stb)
+);
+mat_sigmoid #(.M(784), .N(10)) get_sigmoidH(
+    .clk(clk),
+    .rst(rst),
+    .input_mat(h),
+    .input_mat_stb(input_sigmoid_h_stb),
+    .output_z_ack(getSigmoid),
+    .input_mat_ack(input_sigmoid_h_ack),
+    ,output_z(sigmoid_h_buffer),
+    .output_z_stb(output_sigmoid_h_stb)
 );
