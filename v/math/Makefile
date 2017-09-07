@@ -1,11 +1,17 @@
 VERILOG := iverilog
 SIMULATOR := vvp
-SRCS := rng.v
+SRCS_RNG := rng_tb.v rng.v
+SRCS_SIGMOID := sigmoid_tb.v sigmoid.v ../fpu/adder/adder.v ../fpu/multiplier/multiplier.v
 
 .PHONY: rng
-rng: $(SRCS) rng_tb.v
-	$(VERILOG) -o rng_tb.out $(SRCS) rng_tb.v
+rng: $(SRCS_RNG)
+	$(VERILOG) -o rng_tb.out $(SRCS_RNG)
 	$(SIMULATOR) rng_tb.out
+
+.PHONY: sigmoid
+sigmoid: $(SRCS_SIGMOID)
+	$(VERILOG) -o sigmoid_tb.out $(SRCS_SIGMOID)
+	$(SIMULATOR) sigmoid_tb.out
 
 .PHONY : clean
 clean:
