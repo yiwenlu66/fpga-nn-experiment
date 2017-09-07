@@ -10,6 +10,8 @@ module inner_product #(parameter N=1,
     output output_prod_stb
 );
 
+// bisect the vectors for parallel processing until the length of each
+// sub-vector <= N_THRESH
 
 generate
 
