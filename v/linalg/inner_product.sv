@@ -1,5 +1,5 @@
-module inner_product #(parameter N=8,
-                                 N_THRESH=4) (
+module inner_product #(parameter N=1,
+                                 N_THRESH=1) (
     input clk,
     input rst,
     input [N - 1:0][31:0] input_v1, input_v2,

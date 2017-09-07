@@ -1,4 +1,4 @@
-module mat_transpose #(parameter M=2, N=3) (
+module mat_transpose #(parameter M=1, N=1) (
     input [M - 1:0][N - 1:0][31:0] input_mat,
     output [N - 1:0][M - 1:0][31:0] output_mat_transposed
 );
