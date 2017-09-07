@@ -3,6 +3,7 @@ SIMULATOR := vvp
 SRCS := inner_product.v mat_product.v mat_sum.v mat_transpose.v ../fpu/adder/adder.v ../fpu/multiplier/multiplier.v
 SRCS_INNER_PRODUCT := inner_product.sv inner_product_tb.sv ../fpu/adder/adder.v ../fpu/multiplier/multiplier.v
 SRCS_MAT_MUL_SCALAR := mat_mul_scalar_tb.sv mat_mul_scalar.sv ../fpu/multiplier/multiplier.v
+SRCS_MAT_TRANSPOSE := mat_transpose.sv mat_transpose_tb.sv
 
 .PHONY: inner_product
 inner_product: $(SRCS_INNER_PRODUCT)
@@ -20,8 +21,8 @@ mat_sum: $(SRCS) mat_sum_tb.v
 	$(SIMULATOR) mat_sum_tb.out
 
 .PHONY: mat_transpose
-mat_transpose: $(SRCS) mat_sum_tb.v
-	$(VERILOG) -o mat_transpose_tb.out mat_transpose.v mat_transpose_tb.v
+mat_transpose: $(SRCS_MAT_TRANSPOSE)
+	$(VERILOG) -o mat_transpose_tb.out $(SRCS_MAT_TRANSPOSE)
 	$(SIMULATOR) mat_transpose_tb.out
 
 .PHONY: mat_mul_scalar
