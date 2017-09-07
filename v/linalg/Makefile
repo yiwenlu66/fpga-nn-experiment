@@ -1,11 +1,12 @@
 VERILOG := iverilog
 SIMULATOR := vvp
 SRCS := inner_product.v mat_product.v mat_sum.v mat_transpose.v ../fpu/adder/adder.v ../fpu/multiplier/multiplier.v
+SRCS_INNER_PRODUCT := inner_product.sv inner_product_tb.sv ../fpu/adder/adder.v ../fpu/multiplier/multiplier.v
 SRCS_MAT_MUL_SCALAR := mat_mul_scalar_tb.sv mat_mul_scalar.sv ../fpu/multiplier/multiplier.v
 
 .PHONY: inner_product
-inner_product: $(SRCS) inner_product_tb.v
-	$(VERILOG) -o inner_product_tb.out $(SRCS) inner_product_tb.v
+inner_product: $(SRCS_INNER_PRODUCT)
+	$(VERILOG) -o inner_product_tb.out $(SRCS_INNER_PRODUCT)
 	$(SIMULATOR) inner_product_tb.out
 
 .PHONY: mat_product
