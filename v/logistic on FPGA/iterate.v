@@ -6,17 +6,31 @@ module logistic(
         readEn,
         writeData,
         writeEn,
-        writeClk
+        writeClk,
+        rate,
+        done,
+        batchNum
     );
+
+localparam Idle = 0;
+localparam getXAndH = 1;
+localparam getSigmoidH = 2;
+localparam getYMinusH = 3;
+localparam getXDM = 4;
+localparam getXDM_MUL_HMY = 5;
+localparam getLRGRAD = 6;
+localparam getNTheta = 7;
 input clk; //100M
 input rst; //high
 input [31:0] readData;
 input readClk;
+input [3:0] batchNum;
 output readEn;
 output [31:0] writeData;
 output writeEn;
 output writeClk;
-
+output done;
+output [9:0] rate;
 wire dataInReady;
 reg dataOutReady;
 //get data input ready
@@ -32,13 +46,18 @@ reg [9:0] xJ;
 reg [9:0] yI;//index for y
 reg [9:0] yJ;
 reg [9:0] tI; //index for Theta
-reg [9:0] tJ; 
+reg [9:0] tJ;
+reg [9:0] trI;
+reg [9:0] trJ;
 reg [10:0] iterate;//iterate times
+reg randomlized;
+reg [31:0] randomNum;
 assign dataInReady = xReady & yReady;
 assign readEn = readEnable;
 assign writeEn = writeEnable;
 assign writeClk = clk;
-//training
+assign done = dataOutReady & rateForSuccess;
+//control read
 always@(posedge clk)
 begin
     if(rst)
@@ -50,16 +69,43 @@ begin
         i <= 0;
         j <= 0;
         state <= 0;
+        randomlized <= 0;
+        trI <= 0;
+        trJ <= 0;
+        if(batchNum != 0)
+        begin
+            randomlized <= 1;
+        end 
     end
     else
     begin
-        if(!dataInReady)
+        if(!dataInReady && randomlized)
             readEnable <= 1;
         else
         begin
             readEnable <= 0;
         end
-    end
+        if(!randomlized)
+        begin 
+         if(trJ == 9)
+         begin
+            if(trI == 783)
+            begin 
+                randomlized <= 1;
+            end 
+            else
+            begin 
+                trJ <= 0;
+                trI <= trI + 1;
+            end 
+         end
+         else
+         begin
+            trJ <= trJ + 1;
+         end
+         Theta[trI][trJ] <= randomNum;
+     end 
+    end 
 end
 
 always@(posedge readClk)
@@ -125,11 +171,14 @@ begin
 end 
 reg [9:0] cnt;
 reg [9:0] index;
+reg rateForSuccess;
+assign rate = cnt;
 always@(posedge clk)
 begin 
     if(rst)
         cnt <= 0;
         index <= 0;
+        rateForSuccess <= 0;
     else
     begin
         if(dataOutReady == 1)
@@ -139,6 +188,8 @@ begin
                  if(sigmoid_h[index] == y[index])
                      cnt <= cnt+1;
              end
+             else
+                 rateForSuccess <= 1;
 
         end
     end
@@ -206,7 +257,7 @@ wire output_xTransDivM_stable;
 always@(posedge clk)
 begin
     case(state)
-    0:begin
+    Idle:begin
         if(dataInReady || rst)
         begin 
             iterate <= iterate + 1;
@@ -237,7 +288,7 @@ begin
             iterate <= 0;
 
     end
-    1:begin
+    getXAndH:begin
         if(input_x_ack && input_Theta_ack && output_h_stb)
         begin
             h <= h_buffer;
@@ -247,7 +298,7 @@ begin
             input_sigmoid_h_stb <= 1;
         end
     end
-    2:begin
+    getSigmoidH:begin
         if(input_sigmoid_h_ack && output_sigmoid_h_stb)
         begin
             sigmoid_h <= sigmoid_h_buffer;
@@ -255,7 +306,7 @@ begin
             state <= 3;
         end
     end
-    3:begin
+    getYMinusH:begin
         if(input_y_ack && input_h_ack && output_YMH_stable)
         begin
             h_minus_y <= h_minus_y_buffer;
@@ -264,7 +315,7 @@ begin
             state <= 4;
         end
     end
-    4:begin
+    getXtransDivM:begin
         if(input_oneDiveM_ack && input_xTrans_ack && output_xTransDivM_stable)
         begin
             xTransDivM <= xTransDivM_buffer;
@@ -275,7 +326,7 @@ begin
             input_HMY_stb <= 1;
         end
     end
-    5:begin
+    getXDM_MUL_HMY:begin
         if(input_xTransDivM_ack && input_HMY_ack && output_Grad_stb)
         begin
             grad <= grad_buffer;
@@ -283,7 +334,7 @@ begin
             input_grad_stb <= 1; 
         end
     end
-    6:begin
+    getLRGRAD:begin
         if(input_grad_ack && input_lr_ack && output_lrGrad_stb)
         begin
             lrGrad <= lrGrad_buffer;
@@ -294,7 +345,7 @@ begin
             getNewTheta <= 0;
         end 
     end
-    7:begin
+    getNTheta:begin
         if(input_lrGrad_ack && input_Theta_ack && output_newTheta_stb)
         begin
             if(iterate < 2001)
@@ -409,3 +460,10 @@ mat_sigmoid #(.M(784), .N(10)) get_sigmoidH(
     ,output_z(sigmoid_h_buffer),
     .output_z_stb(output_sigmoid_h_stb)
 );
+rng rand(
+    .clk(clk),
+    .rst(rst),
+    .seed(32'h0AFB3245),
+    .rnd(randomNum)
+);
+
