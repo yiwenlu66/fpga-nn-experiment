@@ -15,7 +15,7 @@ module mat_mul_scalar
     output reg output_mat_stb
 );
 
-localparam N_BATCHES = $rtoi($ceil(1.0 * M * N / N_MULTIPLIERS));
+localparam N_BATCHES = (M * N / N_MULTIPLIERS * N_MULTIPLIERS == M * N) ? (M * N / N_MULTIPLIERS) : (M * N / N_MULTIPLIERS + 1);
 
 reg [2:0] state;
 localparam GET_SCALAR   = 3'd0,

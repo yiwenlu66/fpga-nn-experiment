@@ -17,7 +17,7 @@ module mat_product
     output reg output_mat_stb
 );
 
-localparam N_BATCHES = $rtoi($ceil(1.0 * M * P / N_INNER_PRODUCTS));
+localparam N_BATCHES = (M * P / N_INNER_PRODUCTS * N_INNER_PRODUCTS == M * P) ? (M * P / N_INNER_PRODUCTS) : (M * P / N_INNER_PRODUCTS + 1);
 
 reg [2:0] state;
 localparam GET_MAT_1          = 3'd0,

@@ -12,7 +12,7 @@ module mat_sigmoid
     output reg output_mat_stb
 );
 
-localparam N_BATCHES = $rtoi($ceil(1.0 * M * N / N_SIGMOID));
+localparam N_BATCHES = (M * N / N_SIGMOID * N_SIGMOID == M * N) ? (M * N / N_SIGMOID) : (M * N / N_SIGMOID + 1);
 
 reg [1:0] state;
 localparam GET_MAT     = 2'd0,

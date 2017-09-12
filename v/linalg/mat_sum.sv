@@ -15,7 +15,7 @@ module mat_sum
     output reg output_mat_stb
 );
 
-localparam N_BATCHES = $rtoi($ceil(1.0 * M * N / N_ADDERS));
+localparam N_BATCHES = (M * N / N_ADDERS * N_ADDERS == M * N) ? (M * N / N_ADDERS) : (M * N / N_ADDERS + 1);
 
 reg [2:0] state;
 localparam GET_MAT_1    = 3'd0,
