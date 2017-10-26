@@ -53,6 +53,13 @@ output		     [6:0]		HEX5;
 output		     [6:0]		HEX6;
 output		     [6:0]		HEX7;
 
+assign HEX1 = 7'b1111111;
+assign HEX2 = 7'b1111111;
+assign HEX3 = 7'b1111111;
+assign HEX4 = 7'b1111111;
+assign HEX5 = 7'b1111111;
+assign HEX6 = 7'b1111111;
+assign HEX7 = 7'b1111111;
 
 //=======================================================
 //  REG/WIRE declarations
@@ -69,7 +76,7 @@ reg [N - 1:0][N_CLASSES - 1:0][31:0] Theta;
 reg [$bits(N) - 1:0] i_X;
 reg [$bits(N * N_CLASSES) - 1:0] i_Theta;
 reg [$bits(N_CLASSES) - 1:0] prediction;
-reg [3:0] prediction_led;
+reg [3:0] prediction_seg7;
 
 reg [2:0] state;
 localparam GET_X       = 3'd0,
@@ -179,7 +186,7 @@ always @(posedge clk) begin
 
             PUT_RESULT: begin
                 LEDR[17] <= 1'b1;
-                prediction_led <= prediction;
+                prediction_seg7 <= prediction;
             end
 
         endcase
@@ -187,7 +194,11 @@ always @(posedge clk) begin
     end
 end
 
-assign LEDR[3:0] = prediction_led;
+
+SEG7_LUT SEG7_LUT_inst (
+    .iDIG(prediction_seg7),
+    .oSEG(HEX0)
+);
 
 ram ram_inst (
 	.clock(clk),
