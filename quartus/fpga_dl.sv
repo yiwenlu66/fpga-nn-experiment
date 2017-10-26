@@ -88,6 +88,9 @@ wire predict_output_prediction_stb;
 
 reg predict_read_X_done, predict_read_Theta_done;
 
+assign predict_input_X = X;
+assign predict_input_Theta = Theta;
+
 
 //=======================================================
 //  Structural coding
@@ -202,6 +205,7 @@ logistic_predict #(.N(15), .N_CLASSES(10), .MATMUL_N_INNER_PRODUCTS(1), .MATMUL_
     .input_Theta(predict_input_Theta),
     .input_X_stb(predict_input_X_stb),
     .input_Theta_stb(predict_input_Theta_stb),
+    .output_prediction(predict_output_prediction),
     .output_prediction_ack(predict_output_prediction_ack),
     .input_X_ack(predict_input_X_ack),
     .input_Theta_ack(predict_input_Theta_ack),
