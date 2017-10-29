@@ -15,6 +15,11 @@ m = size(X, 1);
 n = size(X, 2) - 1;
 num_classes = size(y, 2);
 
+% PCA
+if exist('PCA_SIZE', 'var')
+    X = pca(X, PCA_SIZE);
+end
+
 % load weights
 load('weights.mat');
 

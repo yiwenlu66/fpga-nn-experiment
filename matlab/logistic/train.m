@@ -16,8 +16,17 @@ m = size(X, 1);
 n = size(X, 2) - 1;
 num_classes = size(y, 2);
 
+% PCA
+if exist('PCA_SIZE', 'var')
+    X = pca(X, PCA_SIZE);
+end
+
 % initialize weights
-Theta = rand(n + 1, num_classes) * 1e-8;
+if exist('PCA_SIZE', 'var')
+    Theta = rand(PCA_SIZE, num_classes) * 1e-8;
+else
+    Theta = rand(n + 1, num_classes) * 1e-8;
+end
 
 % set hyperparameters
 lr = 1e-4;
